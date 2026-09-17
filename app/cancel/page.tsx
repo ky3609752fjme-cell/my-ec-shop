@@ -1,18 +1,61 @@
-import Link from 'next/link';
+'use client';
 
-export default function CancelPage() {
+import { useEffect, useState } from 'react';
+
+interface Product {
+  id: number;
+  name: string;
+  thumbnail_url: string;
+}
+
+export default function HomePage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const res = await fetch('/api/products');
+        const data = await res.json();
+        if (data.result) {
+          setProducts(data.result);
+        }
+      } catch (err) {
+        console.error('商品データの取得に失敗しました', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProducts();
+  }, []);
+
+  if (loading) {
+    return <div style={{ padding: '2rem', textAlign: 'center' }}>商品情報を読み込んでいます...</div>;
+  }
+
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6">
-      <div className="bg-white p-8 rounded-xl shadow-md text-center max-w-md">
-        <div className="text-5xl mb-4">🛒</div>
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">注文がキャンセルされました</h1>
-        <p className="text-gray-600 mb-6">決済処理は完了していません。</p>
-        <Link
-          href="/"
-          className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition"
-        >
-          ショップに戻る
-        </Link>
+    <main style={{ maxWidth: '1000px', margin: '0 auto', padding: '2rem', fontFamily: 'sans-serif' }}>
+      <h1 style={{ fontSize: '2rem', marginBottom: '1.5rem', fontWeight: 'bold' }}>ショップ商品一覧</h1>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.5rem' }}>
+        {products.map((product) => (
+          <div 
+            key={product.id} 
+            style={{ 
+              border: '1px solid #e5e7eb', 
+              borderRadius: '12px', 
+              padding: '1rem', 
+              textAlign: 'center',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+            }}
+          >
+            <img
+              src={product.thumbnail_url}
+              alt={product.name}
+              style={{ width: '100%', height: 'auto', borderRadius: '8px', objectFit: 'cover' }}
+            />
+            <h2 style={{ fontSize: '1.1rem', marginTop: '1rem', fontWeight: '600' }}>{product.name}</h2>
+          </div>
+        ))}
       </div>
     </main>
   );
